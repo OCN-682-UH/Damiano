@@ -1,6 +1,6 @@
 ## Savannah Damiano's MBIO612 Repository
 
-#### This repository holds weekly assignmetns, data, scripts, and outputs for MBIO612.
+#### This repository holds weekly assignments, data, scripts, and outputs for MBIO612.
 
 **Author:** Savannah Damiano
 
