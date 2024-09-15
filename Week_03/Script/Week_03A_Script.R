@@ -34,7 +34,7 @@ ggplot(data=penguins,
   scale_color_viridis_d() +
   facet_grid(species~sex) +
   guides (color= FALSE)
-
+ 
   
   
 
