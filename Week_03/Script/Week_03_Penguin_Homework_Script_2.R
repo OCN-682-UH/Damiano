@@ -32,11 +32,11 @@ ggplot(data = penguins,                             # Mapping is directly relate
                      group = species,               # groups data by species
                      fill = species))+              #fills in the species data with color
 
-  geom_violin(alpha = 0.5)+                                                     # violin plot. Alpha changes transparency.
-  geom_boxplot(width = 0.5) +                                                   # box plot inside violin 
-   labs( title = "Flipper Length and Body Mass of Palmer Penguins",             # added a title to the graph
-         subtitle = "Dimentions for Adelie, Chinstrap, and Gentoo Penguins",    # added a subtitle to the graph
-         x = "Body Mass (g)",                                                   # changed x-axis title
+  geom_violin(alpha = 0.5)+                                                               # violin plot. Alpha changes transparency.
+  geom_boxplot(width = 0.5) +                                                             # box plot inside violin 
+   labs( title = "Flipper Length and Body Mass of Palmer Penguins",                       # added a title to the graph
+         subtitle = "Dimentions for Adelie, Chinstrap, and Gentoo Penguins by Island",    # added a subtitle to the graph
+         x = "Body Mass (g)",                                                             # changed x-axis title
          y = "Flipper Length (mm)",                                             # changed y-axis title
          caption = "Source: Palmer Station") +                                  # added a caption at bottom of page- source of data
   guides(fill=FALSE) +                                                          # delete legend
@@ -47,6 +47,9 @@ ggplot(data = penguins,                             # Mapping is directly relate
   facet_grid(island~species)+                                                   # (rows~columns) a matrix of panels- 2d grid                                               
   theme(plot.title = element_text(size = 18))                                   # changed title size
 
+
+ggsave(here("Week_03","Output","PalmerPenguin_Homework.png"),                   # Saves the graph to Damiano- Week 3- Outputs- and names it Penguin.pdf
+       width=7, height=5)                                                       # Altered the size of the saved graph to  7x5 inches
 
 
  
