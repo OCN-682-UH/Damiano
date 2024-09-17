@@ -26,7 +26,7 @@ plot1<-ggplot(data = penguins,
                   y = bill_length_mm,      
                   group= species,
                   color=species))+        # + means your adding a layer
-  geom_point()+                           #Setting configures aspects of the plots appearance and behavior
+  geom_point()+                           #Setting = configures aspects of the plots appearance and behavior
   geom_smooth(method = "lm")+             #Goes in after geom_point because it affects appearance
     labs(x = "Bill depth (mm)",
           y = "Bill length (mm)"
@@ -45,7 +45,6 @@ plot1<-ggplot(data = penguins,
 ggsave(here("Week_03","Output","Penguin.png"),                  # Saves the graph to Damiano- Week 3- Outputs- and names it Penguin.pdf
        width=7, height=5)                                       # Altered the size of the saved graph to  7x5 in inches
 
- 
 #### This is a new graph to show us how to change coordinates: Transform the x and y-axis (log10)###
   
 ggplot(diamonds, aes(carat, price)) +
