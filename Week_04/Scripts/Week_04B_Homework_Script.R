@@ -38,10 +38,12 @@ write_csv(here("Week_04", "Output", "ChemData_Homework_Summary_4B.csv"))        
   
 ggplot(data = ChemData_tidy,                                                    # data being used is the ChemData_tidy that I created
        mapping = aes( x = Values,                                               # x axis is values - you do not need a y axis for geom_density 
-                      fill = Variables))+                                       # we are choosing to fill the variables with color on the plot
+                      fill = Variables,
+                      group = Tide))+                                           # we are choosing to fill the variables with color on the plot
 geom_density(alpha=0.8)+                                                        # we are working with a denisty plot. alpha to make it more transparency 
-facet_grid(Tide ~ Variables, scales = "free", labeller = "label_value") +       # facet grid to create a matrix for easier viewing with two variables. The grid will represent data involving Tide and our variables (NN and Silicate). scales = free allows the x and y axis marks to reflect the data. 
-geom_vline(aes(xintercept = mean_of_values)) +                                  # geom_vline adds a vertical line to highlight mean
+facet_grid(Tide ~ Variables, scales = "free") +                                 # facet grid to create a matrix for easier viewing with two variables. The grid will represent data involving Tide and our variables (NN and Silicate). scales = free allows the x and y axis marks to reflect the data. 
+coord_trans(x = "log10") +
+geom_vline(mapping = aes(xintercept = mean_of_values)) +                        # geom_vline adds a vertical line to highlight mean
 labs(title = "Density of Nitrates and Silicates Levels by Tide Level",          # plot title
        subtitle = "Fall Field Season",                                          # subtitle- we removed Spring data
        caption= "Source: Silbiger et al. 2020",                                 # give credit 
@@ -50,11 +52,13 @@ labs(title = "Density of Nitrates and Silicates Levels by Tide Level",          
 theme_bw() +                                                                    # adds a theme to the graph
 scale_fill_manual(values = c("#b0986c","#f57946")) +                            # give her some fall colors for fall data
 theme(plot.title = element_text(size = 14),                                     # increase title font size
-      plot.caption.position = "plot")                                           # moves the source caption to the bottom right
-
-#ggsave(here("Week_04","Outputs", "ChemData_Tidy_Homework_4B.pdf"),             # exports plot into a PDF into output folder
-              #width=7, height=5)
-
+      plot.caption.position = "plot") +                                         # moves the source caption to the bottom right
+theme(axis.text.x = element_text(angle = 90,                                    # turned the x-axis text vertical (90 degrees)
+                                   vjust = 0.9,                                 # controls vertical justification 
+                                   hjust = 0.5))                                # controls horizontal justification 
+  
+ggsave(here("Week_04","Output", "ChemData_Tidy_Homework_4B.pdf"),               # exports plot into a PDF into output folder
+       width = 9, height = 5) 
 
   
 
