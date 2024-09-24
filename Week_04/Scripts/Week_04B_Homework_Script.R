@@ -38,11 +38,11 @@ write_csv(here("Week_04", "Output", "ChemData_Homework_Summary_4B.csv"))        
   
 ggplot(data = ChemData_tidy,                                                    # data being used is the ChemData_tidy that I created
        mapping = aes( x = Values,                                               # x axis is values - you do not need a y axis for geom_density 
-                      fill = Variables,
-                      group = Tide))+                                           # we are choosing to fill the variables with color on the plot
+                      fill = Variables,                                         # fills in the species data with color
+                      group = Tide))+                                           # groups data by Tide
 geom_density(alpha=0.8)+                                                        # we are working with a denisty plot. alpha to make it more transparency 
 facet_grid(Tide ~ Variables, scales = "free") +                                 # facet grid to create a matrix for easier viewing with two variables. The grid will represent data involving Tide and our variables (NN and Silicate). scales = free allows the x and y axis marks to reflect the data. 
-coord_trans(x = "log10") +
+coord_trans(x = "log10") +                                                      # coord_trans helps in making plots more interpretable by adjusting the scale based on the nature of the data
 geom_vline(mapping = aes(xintercept = mean_of_values)) +                        # geom_vline adds a vertical line to highlight mean
 labs(title = "Density of Nitrates and Silicates Levels by Tide Level",          # plot title
        subtitle = "Fall Field Season",                                          # subtitle- we removed Spring data
