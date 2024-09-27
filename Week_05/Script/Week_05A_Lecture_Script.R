@@ -45,12 +45,12 @@ FullData_left<- left_join(TPCData,EnviroData_wide)                              
 FullData_left<- left_join(TPCData,EnviroData_wide)%>%                           # joining the data together by left_join(). Double check with head(FullData_left)
   relocate(where(is.numeric), .after = where(is.character))                     # relocate all the numeric data after the character data
 
-#Think, Pair, Share Step 5: Calculate the mean and variance of all collected (TPC and Envirnmental) data by site
+#Think, Pair, Share Step 5: Calculate the mean and variance of all collected (TPC and Environmental) data by site
 
 FullData_left<- left_join(TPCData,EnviroData_wide)%>%                           # joining the data together by left_join(). Double check with head(FullData_left)
   relocate(where(is.numeric), .after = where(is.character))                     # relocate all the numeric data after the character data
 
-FullData_left%>%       
+Method1 <- FullData_left%>%       
   pivot_longer(cols = E:substrate.cover,                                        # The columns I want to pivot longer. This says select the E to substrate.cover. We used the exact names in the dataset.                                      # 
                names_to = "Variables",                                          # The name of the new column with the variables I chose - E to substrate.cover
                values_to = "Values") %>%                                        # Names of the column with all the values
@@ -59,6 +59,20 @@ FullData_left%>%
             Param_vars = var(Values, na.rm = TRUE))                             # getting the vars of all the values
 
 View(FullData_left)
+
+#Think, Pair, Share Step 5: Calculate the mean and variance of all collected (TPC and Environmental) data by site
+
+Method2 <- FullData_left%>%
+  group_by(site.letter) %>%
+  summarise_at(vars(E:substrate.cover), 
+               funs(mean = mean, var = var), na.rm= TRUE) 
+
+#Think, Pair, Share Step 5: Calculate the mean and variance of all collected (TPC and Environmental) data by site
+
+Method3 <- FullData_left%>%
+  group_by(site.letter) %>%
+  summarise(across(where(is.numeric), 
+                   list(mean = mean, var =var), na.rm = TRUE))                  # mean = mean : name my mean column mean , var = var :name my varaince column variance
 
 
 ######################################
@@ -77,15 +91,18 @@ T2                                                                              
 
 # left_join vs right_join
 
-left_join(T1, T2)                                                               # Joins to T1 - notice the NA
+left_join(T1, T2)                                                               # Joins to T1 - retains ABCD and drops E - includes NAs for missing data                                                    # Joins to T1 - notice the NA
 
-right_join(T1, T2)                                                              # Joins to T2 - notice where the NA is here
+right_join(T1, T2)                                                              # Joins to T2 - notice where the NA is here - retains ABDE, drops C - includes NAs for missing data
 
 
 # inner_join vs full_join
 
-
+inner_join(T1, T2)                                                              # removes site C and E because they are not complete data sets
+full_join(T1, T2)                                                               # keeps everything and replaces missing data with NAs
 
 
 #semi_join vs. anti_join
 
+semi_join(T1, T2)                                                               # keeps all rows from the first dataframe that has matching data to the second dataframe - helps find missing data
+anti_join(T1, T2)                                                               # saves rows from the first dataframe that are not found in the second dataframe - helps find missing data
