@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ### Lecture Week 5B Homework - Data Wrangling: Joins & Lubridate Dates and Times ###
 ### Created by: Savannah Damiano #####
 ### Updated on 2024-09-26#############
