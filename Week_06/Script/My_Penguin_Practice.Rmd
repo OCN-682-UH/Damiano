@@ -1,0 +1,56 @@
+---
+title: "My Penguin Practice"
+author: "Savannah Damiano"
+date: "2024-10-01"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE 
+    theme: darkly 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+# Intro to Penguins
+Today we are going to work with the penguin data to learn *RMarkdown*
+
+# Load my Libraries
+```{r}
+library(palmerpenguins)
+library(tidyverse)
+library(here)
+```
+# Inspect Data
+```{r}
+glimpse(penguins)
+```
+# Make a Plot 
+```{r}
+penguins%>%
+  ggplot(aes(x =bill_length_mm,
+             y = bill_depth_mm,
+             color = species)) +
+  geom_point() +
+  geom_smooth (method = "lm") +
+  labs (x= "Bill Length (mm)",
+        y = "Bill Depth (mm)") +
+  theme_bw()
+```
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
