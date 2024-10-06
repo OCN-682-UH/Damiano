@@ -1,0 +1,91 @@
+---
+title: "RMarkdown Practice Week 6b"
+author: "Savannah Damiano"
+date: "2024-10-05"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, 
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+
+#echo = TRUE - keeps the code in the .RDM
+#message=false - no messages from code will be in .RDM
+#warning=false - no warning messages will be in .RDM
+# fig.path = "../Output/" saved my penguinplot to the output folder- make sure all spelling matches your folder spelling
+```
+# Introduction to Palmer Penguins
+Today we are going to work with the penguin data to learn *RMarkdown*
+
+# Load my Libraries
+
+```{r}
+library(palmerpenguins)
+library(tidyverse)
+library(here)
+library(kableExtra)
+library(memer)
+```
+## Inspect Data
+```{r}
+glimpse(penguins)
+view(penguins)
+```
+
+# Make a Plot
+```{r penguinplot, fig.asp=1.2, fig.align='center', fig.cap= "This is a scatterplot of penguins",dev="pdf"} 
+
+#named the plot penguin plot - you want a unique name for each plot you do 
+#fig. cap = puts a caption at the bottom of your plot
+#dev="pdf" saves the individual plot as a pdf
+penguins%>%
+  ggplot(aes(x =bill_length_mm,
+             y = bill_depth_mm,
+             color = species)) +
+  geom_point() +
+  geom_smooth (method = "lm") +
+  labs (x= "Bill Length (mm)",
+        y = "Bill Depth (mm)") +
+  theme_bw()
+```
+# Make a Table
+### RMarkdown Table
+ 
+| Time  | Session | Topic    |
+|:------|:-------:|---------:|
+| _left_ | _center_| _right_ |
+| 01:00  | 1       | Anatomy |
+| 01:50  |         | *Break* |
+| 02:00  | 2       | Tables  |
+| 02:45  |         | *Break* |
+
+<!-- use markdown language when developing a table -->
+
+### Kable Table
+```{r}
+penguins %>%
+  group_by(species) %>%
+  summarise(billmean =mean(bill_length_mm, na.rm = TRUE))%>%
+  kbl() %>%     #make it a kable table
+  kable_classic() %>%
+  row_spec(2, bold = T, color = "white", background = "hotpink") %>%
+  kable_styling(full_width = FALSE)
+```
+# Practice Making Meme
+
+```{r}
+
+meme_get("DistractedBf") %>% 
+  meme_text_distbf("Silly R package", "OCN 682 students", "actual coding")
+
+meme_get("DosEquisMan") %>% 
+  meme_text_top("I don't always like coding", size = 28) %>% 
+  meme_text_bottom("But when I do\nIt's always today's totally awesome R package", size = 18)
+
+```
+
