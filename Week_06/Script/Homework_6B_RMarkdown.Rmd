@@ -1,0 +1,167 @@
+---
+author: "Savannah Damiano"
+date: "2024-10-05" 
+title: "RMarkdown Homework"
+subtitle: "MBIO 612 Week 6"
+output:  
+  html_document:
+    toc: TRUE                   
+    toc_float: TRUE
+    theme : journal
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+
+#echo = TRUE - keeps the code in the .RDM
+#message=false - no messages from code will be in .RDM
+#warning=false - no warning messages will be in .RDM
+# fig.path = "../../Output/" saved my figs to the output folder- make sure all spelling matches your folder spelling
+```
+
+# Homework Directions
+
+1.  Use any data sheet from class.
+2.  Create *at least* **one table** and **one figure** in an *RMarkdown* file.
+3.  Create a RMarkdown **output** as either an html, github doc, or pdf.
+4.  **Knit the file**.
+5.  Use headings with *clear* explanations of what you are doing.
+6.  Practice with **bold**, *italics*, and lists.
+7.  Make sure your **outputs and scripts** are saved in the appropriate folders.
+8.  Homework needs to be *pub quality* and make sure to *comment* on code!
+
+# Load Libraries
+
+```{r}
+library(tidyverse)
+library(here)
+library(gtExtras)   #library to make table
+library(PNWColors)  #library for plot colors
+
+```
+
+# Load Data
+
+##### Data from Becker and Silbiger (2020)
+
+```{r}
+# Environmental data from each site (long data)
+# Pull the data from our repository
+EnviroData<-read_csv(here("Week_05","Data", "site.characteristics.data.csv"))    
+
+```
+
+# Inspect Data
+
+```{r}
+glimpse(EnviroData)        #view the data in two ways
+view(EnviroData)
+```
+
+# Modify Data
+
+Goal:
+
+1.  To convert data to wide format
+
+2.  To visualize the *percent cover* across **six study sites** at varying *light* intensity
+
+```{r}
+EnviroData_wide <- EnviroData %>%
+  pivot_wider(names_from = parameter.measured,                                 
+              values_from =values) %>%
+  select(name, light, CCA.cover, algal.cover,coral.cover, substrate.cover)
+# I pivot_wider so that it is easier for me to visualize the variables I wanted to select and their values
+# When pivot_wider make sure you use the exact names from the original data frame
+```
+
+# Create a Table
+
+Goal: To make a table to represent the *percent cover* and *total light* across the **six sites**
+
+Table Specifics:
+
+-   I used the gt() package.
+
+-   I gathered information about the package through the following websites:
+
+    \-[How to Make Beautiful Tables in R](https://rfortherestofus.com/2019/11/how-to-make-beautiful-tables-in-r/) and [Introduction to Creating gt Tables](https://gt.rstudio.com/articles/gt.html)
+
+```{r HomeworkTable6B}
+Table_1 <- EnviroData_wide %>%
+  gt() %>%   #the type of table
+  gt_theme_pff() %>%  # the theme I chose 
+  tab_header(title = "Cover Types and Total Light Across Six Study Sites" ) %>%
+          # the name of the table
+  cols_label(
+    name = md("Site"),
+    CCA.cover = md("CCA Cover (%)"),
+    algal.cover = md("Algae Cover (%)"),
+    coral.cover = md("Coral Cover (%)"),
+    substrate.cover= md("Substrate Cover (%)")) %>% # renamed the columns
+  opt_stylize(color = "pink")                       # add color(outline is pink)
+
+gtsave(Table_1, filename = "HomeworkTable6B.html", path= "../Output/")
+
+#named this figure 'Table_1' so that it could be saved in output folder
+#used to gtsave to save table as an output
+#saving the table to my output folder made the table disappear from my Rmarkdown. In office hours, Gabby helped me learn how to add it back. 
+#look at next R chunk for answer to the issue 
+
+```
+
+```{r plot_2, fig.width=9, fig.height=4, fig.align='center'}
+plot(Table_1) 
+
+#this r chunk called Table_1 to the markdown folder
+# changed the width, height, and alignment so that it the whole graph would be visible in the Rmarkdown folder
+```
+
+# Modify Data
+
+Goal: To convert data back to long format to make it easier to plot
+
+```{r}
+EnviroData_plot <- EnviroData_wide %>%
+  pivot_longer(cols = CCA.cover:substrate.cover,                                         
+               names_to = "Cover_Type",                                        
+               values_to = "Percentage")
+# in cols, make sure to use data frame names
+# made new columns to make plotting easier
+```
+
+# Create a Bar Chart
+
+Goal: To make a plot to represent the *percent cover* across the **six sites**
+
+```{r HomeworkPlot6B, fig.asp=1.2, fig.align='center'}
+  
+  ggplot(EnviroData_plot, aes(x =name,             #name on x
+                           y = Percentage,         #percent on y
+                           fill = Cover_Type)) +   #cover type fills the bars
+  geom_bar(stat = "identity", position = "dodge") +
+  #stat = "identity" : use actual values provided in data
+  #position = "dodge" : so the bars aren't stacked on top of each other
+  labs(title = "Cover Types by Site",   #change the labels
+        x = "Site",
+        y = "Percent Cover") +
+  theme_bw() +   #change theme
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+          #adjust x axis titles so they do not overlap
+  facet_wrap(~ Cover_Type,        #facet by cover type
+             scales = "free_y",    # free_y allows each panel to have its own y-axis scale
+             labeller = labeller(Cover_Type = c(`algal.cover` = "Algae Cover",             
+                                               `CCA.cover` = "CCA Cover",          
+                                               `coral.cover` = "Coral Cover",
+                                               `substrate.cover` = "Substrate Cover"))) +
+                                                #rename facet labels
+  scale_fill_manual(values = c("#45681e", "#11c2b5", "#f9ad2a","#ecc0a1")) +
+                              #manually color bar plot
+  theme(plot.title = element_text(size = 20),     # enlarging the title font
+        axis.title = element_text(size = 13),     # enlarge the axis font
+        legend.position = "none")                 # remove legend
+
+```
