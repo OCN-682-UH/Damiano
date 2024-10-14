@@ -1,0 +1,88 @@
+---
+title: "Lecture 7B"
+author: "Savannah Damiano"
+date: "2024-10-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+
+# Load Library
+
+```{r}
+library(ggmap)
+library(tidyverse)
+library(here)
+library(ggspatial)   #adds scale bars and compass rows
+
+
+
+###API###
+
+# IMPORTANT don't put your key to github!! I usually save mine in a text file and import it each time
+# Setting write = TRUE will write the API key to your R environment so that you do not have to re register it each time
+# Only run your API through your consol 
+# Today we are using our Google and stadiamaps API
+
+#register_google(key = "YOUR KEY HERE", write = TRUE)
+#register_stadiamaps("Your API KEY HERE", write = TRUE)
+
+```
+# Load Data
+- Today we are using the Maunalua Chemistry Data
+
+```{r }
+ChemData<-read_csv(here("Week_07","Data","chemicaldata_maunalua.csv"))
+
+glimpse(ChemData)
+```
+```{r}
+geocode("Houston", output = "all")
+
+```
+
+# Get Base Maps from ggmap
+
+```{r}
+
+#get_map is a basemap from Google Maps
+
+##Step 1
+Oahu <- get_map("Oahu")
+##Step 2
+ggmap(Oahu)  #plots it
+
+# Get coordinates for Wailupe on Oahu 
+##Make a data frame of long and lat coordinates
+WP<-data.frame(lon = -157.7621, lat = 21.27427)  #coords of Wailupe
+
+##Get a base layer
+Map1 <- get_map(WP)
+
+## plot it
+ggmap(Map1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

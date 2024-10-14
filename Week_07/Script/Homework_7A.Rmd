@@ -1,0 +1,183 @@
+---
+title: "Week 7A Homework Tidy Tuesday"
+author: "Savannah Damiano"
+date: "2024-10-10"
+output: 
+  html_document:
+    toc: TRUE                   
+    toc_float: TRUE
+    theme: cosmo
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+# Homework Instructions
+
+- You need to make a map **using RMarkdown** with one of the following datasets from past Tidy Tuesdays. 
+- Make sure, as usual, that you scripts and output are saved appropriately.
+
+# My Dataset Selection
+
+- I chose the dataset about cats because I love cats! Also, my _indoor_ cat would be mad at me if I didn't (highlighting _indoor_ because this article is about the conservation concerns around outdoor cats)!
+- [Cats on the Move](https://github.com/rfordatascience/tidytuesday/blob/master/data/2023/2023-01-31/readme.md)
+
+
+# Load Libraries
+```{r}
+library(tidyverse)
+library(here)
+library(maps)        #libraries to map
+library(mapdata)
+library(mapproj)
+library(leaflet)     #interactive maps
+library(htmlwidgets) #to uplaod my leaflet graph to output
+
+```
+# Load Data
+
+- Copied methods from [Tidy Tuesday Github Page](https://github.com/rfordatascience/tidytuesday/blob/master/data/2023/2023-01-31/readme.md) 
+
+```{r }
+# Get the Data
+
+# Read in with tidytuesdayR package 
+# Install from CRAN via: install.packages("tidytuesdayR")
+# This loads the readme and all the data sets for the week of interest
+
+# Either ISO-8601 date or year/week works!
+
+tuesdata <- tidytuesdayR::tt_load('2023-01-31')
+tuesdata <- tidytuesdayR::tt_load(2023, week = 5)
+
+cats_uk <- tuesdata$cats_uk
+cats_uk_reference <- tuesdata$cats_uk_reference
+
+# Or read in the data manually
+
+cats_uk <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-01-31/cats_uk.csv')
+cats_uk_reference <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-01-31/cats_uk_reference.csv')
+
+```
+# Inspect Data
+
+- I need to look at and inspect the data so I can know what I am getting myself into!
+
+```{r}
+view(cats_uk)
+view(cats_uk_reference)
+head(cats_uk)
+head(cats_uk_reference)
+
+#looking at both data sets in a couple of different ways
+#also reminding myself that we are making a map
+```
+# Data Modification 
+
+I want to look at the movement of two kitty cats, Casper and Poppet. 
+
+```{r}
+
+cat_names <- cats_uk %>%               #renamed the data set 
+  select(tag_id) %>%                   #selecting the tag_id column
+  reframe(name = unique(tag_id)) %>%   
+  # I originally thought to use summarize() but R told me to use reframe
+  # Since there are a lot of cats, I will make a new column so I can see all the tag_id names so I can easily pick a cat
+  arrange(name)
+  # We learned this a couple weeks ago! It arranges the names into alphabetical order. 
+
+#Since it's spooky season, it is only law that I pick Casper!
+casper <- cats_uk %>%
+  filter(tag_id == "Casper-Tag")   #filters to only see Casper-Tag data
+
+#Poppet is fun to say so we will chose that friend for out second map.
+poppet <- cats_uk %>%
+  filter(tag_id == "Poppet-Tag")   #filters to only see Poppet-Tag data
+
+
+```
+
+# Creating a Map Using the Leaflet Package 
+
+Map Specifics:
+
+-   I used the leaflet package.
+
+-   I gathered information about the package through the following websites:
+
+    -[Introduction to leaflet](https://rstudio.github.io/leaflet/articles/leaflet.html#:~:text=Create%20a%20map%20widget%20by%20calling%20leaflet%28%29.%20Add,desired.%20Print%20the%20map%20widget%20to%20display%20it.)
+    
+    -[The Map Widget](https://rstudio.github.io/leaflet/articles/widget.html)
+
+
+#### Casper Map
+```{r HomeworkMap1}
+
+caspermap <- leaflet(casper) %>%
+  addTiles() %>%  #adds a tile layer
+  addPolylines(lng = ~location_long, lat = ~location_lat, opacity = 0.5, color = "black") %>%
+  # adds lines to connect the dots of where the cat travels
+  #lng = ~longitude name in df
+  #lat = ~latitude name in df
+  #opacity changes the transparency 
+  #changing the colors of lines
+  addCircles(lng = ~location_long, lat = ~location_lat,  opacity = 0.5, color = "orange") %>%
+  #adds the circles on the map
+  #changing colors of circles
+  addMeasure(
+    position = "bottomleft",
+    primaryLengthUnit = "feet",
+    primaryAreaUnit = "sqfeet")
+  #add a interactive measuring tape (in feet) in the bottom left corner
+
+caspermap       #view map
+
+saveWidget(caspermap, file = "HomeworkMap1.html")
+#save map
+
+#ummm... Casper is kind of boring.... I guess I should try another cat?
+#Wait! If you zoom in a little more on Hayle city, Capser is kind of fun. 
+```
+
+#### Poppet Map
+```{r HomeworkMap2}
+poppetmap <- leaflet(poppet) %>%
+  addTiles() %>%  #adds a tile layer
+  addPolylines(lng = ~location_long, lat = ~location_lat, opacity = 0.8, color = "hotpink") %>%
+  addCircles(lng = ~location_long, lat = ~location_lat,  opacity = 0.5, color = "purple") %>%
+  addMeasure(
+    position = "bottomleft",
+    primaryLengthUnit = "feet",
+    primaryAreaUnit = "sqfeet")
+
+# refer to previous r chuck for comments 
+
+poppetmap      #view map
+
+saveWidget(poppetmap, file = "HomeworkMap2.html")
+#save map
+
+#Okay Poppet! 
+```
+
+
+# Dataset Credit
+- Kays R, Dunn RR, Parsons AW, Mcdonald B, Perkins T, Powers S, Shell L, McDonald JL, Cole H, Kikillus H, Woods L, Tindle H, Roetman P (2020) The small home ranges and large local ecological impacts of pet cats. Animal Conservation. doi:10.1111/acv.12563
+- McDonald JL, Cole H (2020) Data from: The small home ranges and large local ecological impacts of pet cats [United Kingdom]. Movebank Data Repository. doi:10.5441/001/1.pf315732
+
+
+
+
+
+
+
+
+
+
+
+
+
+

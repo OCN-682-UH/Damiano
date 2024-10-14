@@ -1,0 +1,194 @@
+---
+title: "Lecture 7a"
+author: "Savannah Damiano"
+date: "2024-10-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE)
+```
+# Load Libraries
+
+```{r}
+library(tidyverse)
+library(here)
+library(maps)        # new map packages
+library(mapdata)     
+library(mapproj)     
+```
+
+# Load Data
+
+```{r pressure}
+# Read in data on population in California by county
+popdata<-read_csv(here("Week_07","Data","CApopdata.csv"))
+
+#read in data on number of seastars at different field sites
+stars<-read_csv(here("Week_07","Data","stars.csv"))
+
+view(popdata)
+view(stars)
+
+```
+# {maps} Package
+
+```{r}
+# get data for the entire world
+world<- map_data("world")
+
+head(world)
+
+# get data for the USA
+usa<- map_data("usa")
+
+head(usa)
+
+# get data for Italy
+italy<- map_data("italy")
+head(italy)
+
+# get data for states
+states<-map_data("state")
+head(states)
+
+# get data for counties
+counties<-map_data("county")
+head(counties)
+```
+
+# Make a Map of the World
+```{r}
+###Make a Map of the World###
+####starting with ggplot
+
+#GOOD MAP example
+ggplot()+
+  geom_polygon(data = world, aes(x = long,  #use geom-polygon for maps
+                                 y = lat, 
+                                 group = group)) 
+                                  #group = group important
+
+#BAD MAP example 
+##what happens if you forget group=group
+
+ggplot()+
+  geom_polygon(data = world, aes(x = long, y = lat))
+
+
+#GOOD MAP AGAIN
+
+#add color to the lines 
+
+ggplot()+
+  geom_polygon(data = world, 
+               aes(x = long, y = lat, group = group),
+               color = "black")   # color is outline!
+
+#add color to the lines and fill
+
+ggplot()+
+  geom_polygon(data = world, 
+               aes(x = long, 
+                   y = lat, 
+                   group = group, 
+                   fill = region), #fill colors it in
+               color = "black") + #color needs to be outside aes
+  guides(fill = FALSE) +             #gets rid of legend
+  theme_minimal() +
+  theme(panel.background = element_rect(fill = "lightblue"))+ 
+                #background blue
+  coord_map(projection = "mercator",
+            xlim = c(-180,180))
+  
+```
+
+# Map of California
+
+```{r}
+##Map of California 
+
+# Use the states dataset
+head(states)
+
+# Use the states dataset
+CA_data<-states %>%
+  filter(region == "california")
+head(CA_data)
+
+#Make a simple map of just California using what you just learned.
+
+CA_data<-states %>%
+  filter(region == "california")
+  ggplot()+
+  geom_polygon(data = CA_data, 
+               aes(x = long, 
+                   y = lat, 
+                   group = group),
+               fill = "purple") + #color needs to be outside aes
+  coord_map() +
+  theme_void()
+  
+#Plot the population of every county in California
+  
+# Look at the county data
+head(counties)[1:3,] # only showing the first 3 rows for space
+
+# Look at the county data
+head(popdata)
+
+CApop_county <- popdata %>%
+  select("subregion" = County, Population)  %>% # rename the county col
+  inner_join(counties) %>%
+  filter(region == "california") # some counties have same names in other states
+
+
+view(CApop_county)
+
+
+ggplot()+
+geom_polygon(data = CApop_county, 
+             aes(x = long, 
+                 y = lat, 
+                 group = group,
+                 fill = Population),  
+             color = "black")+
+  coord_map()+
+  theme_void() +
+  scale_fill_gradient(trans = "log10")
+
+head(CApop_county)
+
+#Look at the stars dataset. This has the number of seastars per/m2 at different sites in California.
+
+head(stars)
+
+ggplot()+
+geom_polygon(data = CApop_county, 
+             aes(x = long, 
+                 y = lat, 
+                 group = group,
+                 fill = Population),  
+             color = "black")+
+geom_point(data = stars, # add a point at all my sites
+             aes(x = long,
+                 y = lat,
+                 size = star_no))+
+  coord_map()+
+  theme_void() +
+  scale_fill_gradient(trans = "log10") +
+  labs(size = "# stars/m2") 
+  ggsave(here("Week_07","Output","CApop.pdf"))
+  
+
+```
+
+# Totally Awesome R Package
+
+```{r}
+#TOTALLY AWESOME R PACKAGE  
+library(ggdogs)
+ggplot(mtcars) +
+  geom_dog(aes(mpg, wt), dog = "pug", size = 5)  

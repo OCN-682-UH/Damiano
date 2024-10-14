@@ -88,7 +88,7 @@ Table Specifics:
 
 -   I gathered information about the package through the following websites:
 
-    \-[How to Make Beautiful Tables in R](https://rfortherestofus.com/2019/11/how-to-make-beautiful-tables-in-r/) and [Introduction to Creating gt Tables](https://gt.rstudio.com/articles/gt.html)
+    -[How to Make Beautiful Tables in R](https://rfortherestofus.com/2019/11/how-to-make-beautiful-tables-in-r/) and [Introduction to Creating gt Tables](https://gt.rstudio.com/articles/gt.html)
 
 ```{r HomeworkTable6B}
 Table_1 <- EnviroData_wide %>%
