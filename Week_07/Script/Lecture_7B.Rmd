@@ -41,10 +41,6 @@ ChemData<-read_csv(here("Week_07","Data","chemicaldata_maunalua.csv"))
 
 glimpse(ChemData)
 ```
-```{r}
-geocode("Houston", output = "all")
-
-```
 
 # Get Base Maps from ggmap
 
