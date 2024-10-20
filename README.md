@@ -23,3 +23,5 @@ Weekly folders include:
 [Week 6](https://github.com/OCN-682-UH/Damiano/tree/main/Week_06)
 
 [Week 7](https://github.com/OCN-682-UH/Damiano/tree/main/Week_07)
+
+[Week 8](https://github.com/OCN-682-UH/Damiano/tree/main/Week_08)
