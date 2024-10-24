@@ -1,0 +1,116 @@
+---
+title: "Homework 9A"
+author: "Savannah Damiano"
+date: "2024-10-23"
+output: 
+  html_document:
+    toc: TRUE                   
+    toc_float: TRUE
+    theme : journal
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+# Homework Instructions
+
+"Use any dataset you would like and make two useful functions. One that is a plot and one that is not. Turn in your functions using RMarkdown with at least 2 examples per function showing its flexibility."
+
+# Load Libraries
+```{r }
+library(here)
+library(tidyverse)    
+library(PNWColors)   #color palette 
+```
+
+# Load Data
+
+```{r }
+EnviroData<-read_csv(here("Week_05","Data", "site.characteristics.data.csv"))
+
+glimpse(EnviroData)  #make it visible on .rmd
+```
+
+# Non-Plot Function 
+
+A function to calculate the mean of a specific parameter across different sites.
+```{r}
+
+# Function to calculate mean of a specific parameter
+
+calculate_mean <- function(data, parameter) {
+ 
+   # Filter data for the specified parameter
+  filtered_data <- data %>% filter(parameter.measured == parameter)
+  
+  # Calculate mean by site
+  mean_values <- filtered_data %>%
+    group_by(site.name = site.letter) %>%   #group by site
+    summarise(mean_value = mean(values, na.rm = TRUE)) #find mean and ignore NA
+  
+  return(mean_values)  #return the resulting means
+
+}
+
+#Test Functions
+
+#Example 1:
+#Calculate mean for light
+mean_light <- calculate_mean(EnviroData, "light")
+glimpse(mean_light) #make it visible on .rmd
+
+#Example 2
+#Calculate mean for temperature
+mean_temp <- calculate_mean(EnviroData, "temp")
+glimpse(mean_temp) #make it visible on .rmd
+```
+
+# Plot Function 
+
+A function to plot the EnviroData data set based on a specified parameter.
+
+```{r 1HomeworkPlot9a}
+
+# Example function to plot data
+plot_parameter <- function(data = EnviroData, parameter) {
+  
+  # Filter the data for the specified parameter
+  filtered_data <- data %>% 
+    filter(parameter.measured == parameter)
+  
+  # Create the plot
+  ggplot(filtered_data, aes(x = name, y = values, fill = parameter.measured)) +
+    geom_bar(stat = "identity", position = "dodge") +
+                #bar plot
+                #stat = "identity" : use actual values provided in data
+                #position = "dodge" : so the bars aren't stacked on top of each other
+    theme_minimal() +
+                #background theme
+    theme(axis.text.x = element_text(angle = 45, hjust = 1), legend.position = "none") +
+                #adjust x axis titles so they do not overlap
+     scale_fill_manual(values = pnw_palette("Starfish", 6))
+                #change color of bars
+}
+
+#Test
+#Example 1
+#light across 6 sites
+plot_parameter(EnviroData, "light")
+```
+
+
+```{r 2HomeworkPlot9a}
+
+#Test
+#Example 2
+#algal cover across 6 sites
+plot_parameter(EnviroData, "algal.cover")
+```
+
+
+
+
+
