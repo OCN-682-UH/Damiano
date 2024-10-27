@@ -1,0 +1,265 @@
+---
+title: "Lecture 9B Factors"
+author: "Savannah Damiano"
+date: "2024-10-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+# Class Outline
+
+Working with factors
+
+1. What is a factor
+
+2. Using {forcats} a part of the tidyverse (for CATegorical data... also an anagram for factor)
+
+3. Homework using factors
+
+# Load Libraries
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+# Load Data
+
+We will be using two datasets today
+
+1. An old TidyTuesday dataset
+
+2. A Starwars dataset from {forcats} package in tidyverse
+
+```{r}
+
+#tuesdata <- tidytuesdayR::tt_load(2021, week = 7)
+#income_mean<-tuesdata$income_mean
+
+income_mean <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-02-09/income_mean.csv')
+
+```
+
+# What is a factor?
+
+- A specialized version of a character
+
+- How we store *categorical* data
+
+- The values that a factor takes are called levels. This allows to order your data in a very specific way. 
+
+- The default levels are always alphabetical (which may not always be helpful). 
+```{r}
+# to make something a factor, you use the factor function 
+
+fruits <-factor(c("Apple", "Grape", "Banana"))
+
+fruits #check your factor- notice it changed the order to alphabetical 
+```
+# Factor Booby-Traps
+
+- When factors can be scary 
+
+- Make sure to only use factors when you absolutely need to!
+
+- Factors are important for categorical data
+```{r}
+# Let's say you had a typo in a column of what was suppose to be numbers. R will read everything in as characters. If they are characters and you try to covert it to a number, the rows with real characters will covert to NAs
+
+#not a factor yet
+test <- c("A", "1", "2")
+as.numeric(test) 
+# changed the "A" to an NA
+
+#now change to a factor
+test <- factor(test)  #convert to factor
+as.numeric(test)
+# it changed "A" to a "3", which is bad because now we have data that never should have exist 
+```
+# {forcats} and Reordering Factors
+
+- is a family of function for categorical data
+
+- all functions start with fct_
+
+```{r Lecure9b_ReorderFactors}
+glimpse(starwars)
+
+#How many individuals of each species are present across all starwars films?
+starwars%>%
+  filter(!is.na(species)) %>% #removes the NAs - reminder: "!is.na" removes rows with NAs
+  count(species, sort =TRUE) #count the species and sort by TRUE so we can see how many unique species they are and how many unique characters there are per species
+
+
+
+## There are 38 species, but more are rare. Let's say we wanted to lump all the species together that had less than 3 individuals. 
+##We could use fct_lump() which converts the data into a factor and lumps it together.
+
+star_counts <- starwars %>%
+  filter(!is.na(species)) %>%
+  mutate(species = fct_lump(species, n = 3)) %>% #lumping species so that anything less than 3 (n=3) is going to be lumped (fct_lump) with the species column. Anything with less than 3 species will be lumped into a group named 'Other".  
+  count(species)
+
+
+
+# Reordering Factors
+## A basic ggplot with our star_counts dataframe
+
+star_counts %>%
+  ggplot(aes(x=species, 
+             y=n)) +
+  geom_col()
+
+##but it would be more helpful to view in order of lowest to highest
+
+## a basic ggplot, in order
+
+star_counts %>%
+ggplot(aes(x= fct_reorder(species,n),  ## reorder the factor of species by n
+           #step 1. species (what do i want to reorder). Step 2: n (what do i want to reorder it by)
+           y = n)) +
+  geom_col() +
+  labs (x = "Species")
+
+## make it descending order
+
+star_counts %>%
+  ggplot(aes(x = fct_reorder(species, n, .desc = TRUE), y = n))+ # .desc = True makes it descend
+  geom_col() +
+  labs(x = "Species")
+```
+# {forcats} and Reordering Line Plots
+
+- Let's say you wanted to make a line plot and reorder the legend to match the order of the lines. 
+
+- We will use the income_mean dataset to illustrate this.
+```{r Lecture9b_ReorderingLinePlots}
+
+glimpse(income_mean)
+
+# We are going to make a plot of the total income by year and quantile across all dollar types
+
+total_income <- income_mean %>%
+  group_by(year, income_quintile)  %>%
+  summarise(income_dollars_sum = sum(income_dollars)) %>%
+  mutate(income_quintile = factor(income_quintile))   #make it a factor 
+
+# Basic line plot
+
+total_income %>%
+  ggplot(aes(x = year,
+             y = income_dollars_sum,
+             color = income_quintile)) +
+  geom_line()
+# notice the legend order- it is in alphabetical order- it would be more helpful if it was sorted in a way that matched the lines
+
+#We can reorder line plots by using fct_reorder2, which reorders the data by two variables
+
+total_income%>%
+  ggplot(aes(x = year,
+             y = income_dollars_sum,
+             color = fct_reorder2(income_quintile, year, income_dollars_sum))) +
+            # reorder color by income_quintile. The first thing we are ordering it by is year, then income_dollar_sum. 
+            #So, what it does it it takes the income_sum from the last year and uses that to define your order of colors
+  geom_line() +
+  labs(color = "Income Quantile")
+
+```
+
+# Reordering levels directly in a Vector because We said so
+
+```{r}
+
+# Let's say we have a vector and we want to put it in a specific order that we say. Not necessarily because its the largest or smallest value
+
+x1 <- factor(c("Jan", "Mar", "Apr", "Dec"))
+x1
+
+# This order is not what we want- we do not want it in alphabetical order
+
+x1 <- factor(c("Jan", "Mar", "Apr", "Dec"), levels = c("Jan", "Mar", "Apr", "Dec"))
+x1
+# within the factor, we can specify the level of the order we want using levels= c()
+
+```
+
+# {forcats} and Subsetting Data with Factors
+
+- Back to starwars 
+
+- Let's say we instead of grouping our species that have < 3 counts into "Other" we just filter them out.
+
+```{r Lecture9b_SubsettingData}
+
+# continuation of starwars
+
+starwars_clean<-starwars %>% 
+  filter(!is.na(species)) %>%           # remove the NAs
+  count(species, sort = TRUE) %>%       # count species and sort from highest to lowest
+  mutate(species = factor(species)) %>% #make species a factor
+  filter(n>3)                           #only keep species that have more than 3
+
+starwars_clean    #now we only have humans and droids
+
+# Check the level of the factor
+levels(starwars_clean$species)     #all 38 levels of species is still there
+#Only the data that we subsetted are in the dataframe, but all the levels from all possible factors are still there... this causes all sorts of problems when you go to plot. 
+#Using either fct_drop() within mutate() or droplevels() (the latter is in base R), we can remove any extra levels not included in the dataframe
+
+
+starwars_clean<-starwars %>% 
+  filter(!is.na(species)) %>%           # remove the NAs
+  count(species, sort = TRUE) %>%       # count species and sort from highest to lowest
+  mutate(species = factor(species)) %>% #make species a factor
+  filter(n>3) %>%                       #only keep species that have more than 3
+  droplevels()                          #drop extra levels
+
+
+levels(starwars_clean$species)      #now we only have droid and human
+
+
+#RECODE LEVELS
+#If you want to rename (or recode) a level. For example, lets recode Human to Humanoid.
+
+starwars_clean<-starwars %>% 
+  filter(!is.na(species)) %>% # remove the NAs
+  count(species, sort = TRUE) %>%
+  mutate(species = factor(species)) %>% # make species a factor 
+  filter(n>3)  %>% # only keep species that have more than 3 
+  droplevels() %>% # drop extra levels 
+  mutate(species = fct_recode(species, "Humanoid" = "Human"))  # rename a factor
+
+starwars_clean
+
+```
+
+# Totally Awesome R Package
+
+Then follow directions from [here](https://flujoo.github.io/gm/) to download the MuseScore program and tell R where the path to that program is.
+```{r}
+library(gm)
+
+m <- 
+  Music() +  # initialize a Music object
+  Meter(4, 4) + # add a 4/4 time signature
+  Line(c("C5", "D5", "E5", "F5")) # add a musical line of four quarter notes
+
+#gm::show(m, to = c("score", "audio"))
+
+#show(m)
+
+```
+
+
+
+
+
+
+
+
+
