@@ -7,8 +7,8 @@
 Weekly folders include:
 
 * Data
-* Scripts
-* Outputs
+* Script
+* Output
 
 **Folders:**
 
@@ -25,3 +25,5 @@ Weekly folders include:
 [Week 7](https://github.com/OCN-682-UH/Damiano/tree/main/Week_07)
 
 [Week 8](https://github.com/OCN-682-UH/Damiano/tree/main/Week_08)
+
+[Week 9](https://github.com/OCN-682-UH/Damiano/tree/main/Week_09)
