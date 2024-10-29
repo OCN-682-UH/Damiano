@@ -1,0 +1,306 @@
+---
+title: "Bad Plot & Good Plot Competition"
+author: "Savannah Damiano"
+date: "2024-10-16"
+output: 
+  html_document:
+    toc: TRUE                   
+    toc_float: TRUE
+    theme: cosmo
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+# Dog Tax
+
+For motivation and to honor the dog tax, here is a picture of my dog, Harper, and my honorary dog (my cat who thinks he's a dog), Mango. 
+
+```{r out.width='50%', fig.align='center'}
+  knitr::include_graphics(c('../Data/Harper.JPG', '../Data/Mango.JPG'))
+```
+
+
+# Load Libraries
+
+```{r}
+library(tidytuesdayR)     # data from tidytuesday
+library(here)             # file paths
+library(tidyverse)
+library(magick)           # image processing
+library(ggimage)          # add external images 
+library(PNWColors)        #color palette
+```
+
+# Load Data
+
+I chose a data set from a past tidytuesday : [Dog Breeds](https://github.com/rfordatascience/tidytuesday/blob/master/data/2022/2022-02-01/readme.md)
+```{r}
+# Get the Data
+
+# Read in with tidytuesdayR package 
+# Install from CRAN via: install.packages("tidytuesdayR")
+# This loads the readme and all the datasets for the week of interest
+
+# Either ISO-8601 date or year/week works!
+
+tuesdata <- tidytuesdayR::tt_load('2022-02-01')
+tuesdata <- tidytuesdayR::tt_load(2022, week = 5)
+
+breed_traits <- tuesdata$breed_traits
+
+# Or read in the data manually
+
+breed_traits <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-02-01/breed_traits.csv')
+trait_description <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-02-01/trait_description.csv')
+breed_rank_all <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-02-01/breed_rank.csv')
+
+
+```
+# Bad Plot
+### Modify and Wrangle Data 
+Goals:
+
+- To identify the top _15_ dog breeds of 2020
+
+- To show the breed traits of the top _15_ dog breeds of 2020
+
+- To join my two data sets together (breed rank and breed trait)
+
+```{r}
+### Modify Data
+#Pull dataframes from my repository
+
+breed_traits <- read.csv(here("BadPlot_GoodPlot","Data", "breed_traits.csv"))
+
+# I want only the 2020 data
+breed_rank_all <- read.csv(here("BadPlot_GoodPlot","Data", "breed_rank.csv")) %>%
+  select(Breed, `X2020Rank`)
+
+###Data Wrangling 
+#Join the two datasets together by Breed
+#Pivot longer by attributes and values so the data set is easier to view
+#Select only breed, 2020 rank, attributes and values to be in the df
+
+breed_data_15 <- left_join(breed_rank_all,breed_traits, by="Breed") %>%
+  filter(`X2020Rank` <= 15) %>%        #top 15 dog breeds
+  pivot_longer(cols = c(Affectionate.With.Family: Drooling.Level),
+               names_to = "Attributes",
+               values_to = "Values") %>%
+  select(c(Breed, X2020Rank, Attributes, Values))
+
+
+```
+
+# Plot the Bad
+*cries in R*
+
+Why is it bad?
+
+- **Overload of information & provides no context**: You have no idea what the graph is telling you. You would never know the graph is about the AKC's 2020 top 15 breeds and their personality traits. That's a problem! Your graph should easily inform your reader of the data.
+
+- **Unclear!**: This graph has way too many points, variables, data, and types of geoms. The legend is overwhelming and does not help understand the graph. Also, the aesthetics are over-mapped. Also, the graph was angled, so it makes it even harder to understand (if that was even possible!). 
+
+- **Irresponsible!**: The axes titles do not help the reader. The x axis labels are illegible inside the graph (aka vortex). 
+
+- **Overuse of color**: This can be distracting and confusing.
+
+- **Overlapping bars and points**: The bars and points overlap (yes there is bars! They are hiding), so you cannot see the data. 
+
+- **Too much text inside graph**: There is way to much text inside the plot! The text overlaps to the point that you cannot read it. I should not include text in a graph that you cannot read. 
+
+- **Wrong use of images**: The dog in the bottom right of the graph serves zero purpose (besides joy) to the graph. Images in a graph should only be used to supplement the graph in a positive way.
+
+- **Legend**: The legend serves no purpose to the graph. Also, the title should be "Breeds".
+
+- **Spelling and Grammar**: The graph is riddled with  incorrect spelling and grammar errors.
+
+- **She does not look awesome**: It is cluttered and the colors are scary. 
+
+
+```{r NotFinsihedBadPlot, fig.show = 'hide'}
+
+summary_data<- breed_data_15 %>%
+  group_by(Breed, Attributes) %>%     #group by breed and attribute
+  summarise(AvgValue = mean(Values), .groups = 'drop') #calc average, drop grouping structure
+
+ggplot(summary_data, 
+       aes(x = interaction(Breed, Attributes), #combine breed and attributes for x
+           y = AvgValue,                       #average value for y    
+           fill = Breed)) +                    #fill color by breed
+  geom_bar(stat = "identity") + 
+   geom_point(aes(y = AvgValue + 0.5),  # Adjust y position to place points above bars
+             shape = 21,                 # Shape type (21 is a filled circle)
+             size = 4,                   # Size of the points
+             color = "black",            # Border color
+             fill = "hotpink")   +       # Fill color
+ geom_polygon() +                        # just for fun
+   coord_polar() +                       # make it a circle barplot
+  theme_minimal() +                      # because this mad me laugh
+  labs(title = "CAN i pet that dog?",    #plot titles
+       x = "meow", 
+       y = "levl of good boi.or bad boi. idk...im scared",
+       fill = "dawgs",
+       caption = "*cries in R*... let me take a selfie ->") +
+   geom_text(aes(label = AvgValue),      #add text labels for average values
+            position = position_stack(vjust = 0.5),  #positions labels in middle of bars
+            color = "white", size = 5) +             #label color and size
+  theme(axis.text.x = element_text(angle = 120, hjust = 8),  #rotate x axis 
+        panel.background = element_rect(fill = "#76EE00"),   #background panel color
+        plot.background = element_rect(fill = "#8B5A2B"),    #background plot color
+        axis.title.y = element_text(color = "pink"),         #y axis color
+        axis.title.x = element_text(angle = 110, hjust = 1, size= 20, color = "yellow"), #x axis color, font size, angle of text
+        plot.title = element_text(color = "red", size = 35, face = "bold"), # title size, bold, color
+        plot.caption = element_text(color = "#4EEE94", hjust = 0.9),        # caption color 
+        legend.background = element_rect("#8B8B00"),                        # legend background color
+        legend.position = "right",            
+        legend.text = element_text(color = "yellow", size = 5), # Change legend text size
+        legend.key.size = unit(.5, 'cm'),                       #change legend key size
+        legend.key.height = unit(.5, 'cm'),                     #change legend key height
+        legend.key.width = unit(.5, 'cm')) +                    #change legend key width                         
+  geom_text(aes(label = rownames(summary_data)), color = "orange")       #change text color of numbers inside plot
+ggsave(here("BadPlot_GoodPlot", "Output", "MagickBadPlot.png"))          # save plot so I can add cute picture
+
+```
+
+```{r HomeworkBadPlot}
+dog <- image_read("https://i.imgflip.com/30f140.png")     #my cute picture from the internet <3
+
+badplot<- image_read(here("BadPlot_GoodPlot", "Output", "MagickBadPlot.png")) #load my badplot 
+resized_image <- image_scale(dog, "700")                                      #scale the dog picture
+out <- image_composite(badplot, resized_image, gravity = "southeast")         #put the dog picture on top of bad plot. Dog picture will be in bottom right corner
+out        #wow she's perfect
+```
+
+# Good Plot
+### Modify and Wrangle Data 
+
+Goals:
+
+- To identify the top _5_ dog breeds of 2020
+
+- To show the breed traits of the top _5_ dog breeds of 2020
+
+- To join my two data sets together (breed rank and breed trait)
+
+
+```{r}
+### Modify Data
+#Pull dataframes from my repository
+
+breed_traits <- read.csv(here("BadPlot_GoodPlot","Data", "breed_traits.csv"))
+
+# I want only the 2020 data
+breed_rank_all <- read.csv(here("BadPlot_GoodPlot","Data", "breed_rank.csv")) %>%
+  select(Breed, `X2020Rank`)
+
+###Data Wrangling 
+#Join the two datasets together by Breed
+#Pivot longer by attributes and values so the data set is easier to view
+#Select only breed, 2020 rank, attributes and values to be in the df
+
+breed_data_5 <- left_join(breed_rank_all,breed_traits, by="Breed") %>%
+  filter(`X2020Rank` <= 5) %>%     #top 5 dog breeds
+  pivot_longer(cols = c(Affectionate.With.Family: Drooling.Level),
+               names_to = "Attributes",
+               values_to = "Values") %>%
+  select(c(Breed, X2020Rank, Attributes, Values))
+  
+  #mutate(Attributes = fct_recode(Attributes, "Good with Children" = "Good.With.Young.Children",
+                            #     "Good with Dogs" = "Good.With.Other.Dogs",
+                            #     "Shedding Level" = "Shedding.Level",
+                            #     "Grooming Frequency" = "Coat.Grooming.Frequency",
+                            #     "Drooling Level" = "Drooling.Level"))
+    #useful to learn how to change facet labels if labeller function does not work
+               
+```
+
+# Plot the Good
+
+Why is it good?
+
+- The plot's y axis goes in descending order from #1 dog breed to #5 dog breed. This helps the reader visualize the data chronologically. 
+- The title, subtitle, axes titles, and caption are informative for the reader. 
+
+- I believe it helps the reader understand the qualities of the AKC 2020 top 5 breed. 
+
+- The data was cleaned in a way that helped the graph succeed. 
+
+- Clear, concise, to the point.
+
+- Appropriate and appealing color palette. 
+
+- 2D!
+
+- The bars start at 0.
+
+- The graph shows the data.
+
+```{r HomeworkGoodPlot}
+
+# Possible Bar Plot Submission
+# why are my facet labels not changing?
+
+pal <-pnw_palette("Sailboat",6,type="discrete")   #add a color palette for plot
+
+ggplot(data = breed_data_5,
+       aes(x = Values,                                      #x axis
+           y= fct_reorder(Breed, X2020Rank, .desc = TRUE),  #reorder the factors so that the y axis is in order of 2020 rank. .desc = TRUE so they order from #1 dog to #5 dog
+           fill= Attributes)) +                             #fill color by attributes
+  geom_bar(stat= "identity", position= "dodge") +           #dodge so the bars dont overlap 
+  labs(title = "Personalities of Top Five Most 'Pawpular' Dog Breeds",   #change titles
+       x = "Scale (1-5)",
+       y = "Breed",
+       subtitle="Traits scaled from 1 (low) to 5 (high). Popularity rank based on American Kennel Club registration statistics from 2020.",
+       caption="Data from the American Kennel Club" ) +
+  facet_wrap(~Attributes,      
+             
+             labeller = labeller(Attributes = c(Affectionate.With.Family = "Affection",    #change facet labels          
+                                           Good.With.Young.Children = "Good with Children", 
+                                           Good.With.Other.Dogs = "Good with Dogs",
+                                           Shedding.Level = "Shedding Level",
+                                           Coat.Grooming.Frequency = "Grooming Frequency",
+                                           Drooling.Level = "Drooling Level"))) +
+  theme_bw() +    
+  theme(plot.title = element_text(size = 16),              # change the title font size
+  axis.title = element_text(size = 11),                    # change the axis font size
+  plot.subtitle = element_text(size = 7),                  # change subtitle font size
+  legend.position = "none") +                              # bye legend. we don't need you.
+  scale_fill_manual(values=pal)                            # add that palette 
+        
+
+
+```
+
+```{r Bonus}
+
+# Bonus: Just for Fun
+
+# Create a data frame with breed data
+breed_data <- data.frame(
+  Breed = c("Labrador Retriever", "French Bulldog", "German Shepherd", "Golden Retriever", "Bulldog"),
+  Rank = c(1, 2, 3, 4, 5),
+  ImagePath = c("../Data/labrador.jpg", "../Data/french_bulldog.jpg", 
+                "../Data/german_shepherd.jpg", "../Data/golden_retriever.jpg", 
+                "../Data/bulldog.jpg") 
+)
+
+
+
+# Create a plot
+ggplot(breed_data, aes(x = reorder(Breed, Rank), y = Rank)) +
+  geom_point(size = 6) +
+  geom_image(aes(image = ImagePath), size = 0.13) +  # Adjust size for images
+  scale_y_reverse() +        #to reverse y axis so the dogs go in hierarchical order                      
+  labs(title = "Dog Breed Rankings",
+       x = "Dog Breeds",
+       y = "Rank") +
+  theme_minimal() 
+
+```
+
+
+
