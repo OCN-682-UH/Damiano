@@ -1,0 +1,125 @@
+---
+title: "Homework 9B"
+author: "Savannah Damiano"
+date: "2024-10-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+
+# Homework Instructions
+
+- Working with interidal data
+- Words: clean up issues with the character data
+- Factors: reorder your factors into orders that make sense
+- Fix column headers
+- Use the Janitor package
+- Make a plot: One of the **axes** must be a **factor**
+- Make sure graphs go in chronological/ hierarchical/ logical order
+
+# Load Libraries
+
+```{r}
+library(here)
+library(tidyverse)
+library(janitor)              #helps clean data
+library(tidytext)             #for text mining and making tidy text
+library(PNWColors)            #colors
+```
+
+# Load Data
+
+```{r}
+# We learned about a common factor booby-trap when reading in data
+# We have learned to read in data as 'read_csv()' so the strings will be read in as characters instead of factors
+intertidal <- read_csv(here("Week_09", "Data", "intertidaldata.csv"))
+view(intertidal)
+
+intertidal_lat <- read_csv(here("Week_09", "Data", "intertidaldata_latitude.csv"))
+view(intertidal_lat)
+```
+
+# Data Wrangling 
+
+I will use the intertidaldata.csv data for this homework.
+
+```{r}
+#Clean the column names and random characters in the quadrat column 
+
+intertidal_clean <- intertidal %>%
+  clean_names() %>%  # coverts column names to consistent format 
+   mutate(quadrat = str_remove_all(quadrat, "[\\.0-9\\s]")) #remove periods, whitespace, and numbers from quadrat column
+
+view(intertidal_clean)
+# view the new data to make sure it is clean 
+
+tidal_plot <- intertidal_clean %>%
+  filter(site == "Scripps") %>%               #only want data from scripps 
+  pivot_longer(cols = c(bare_rock: anemone),  # % cover data
+               names_to = "Cover",
+               values_to = "Percent") %>%
+  select(c(site, transect, quadrat, Cover, Percent)) %>%  #select out the data I want 
+  mutate(quadrat = factor(quadrat)) %>%    #makes quadrat a factor 
+  droplevels()                              # drops extra levels
+
+
+
+#After plotting I realized that there was two words for low and two words for mid. We need to fix this so we only have one word to represent high, mid, and low. 
+
+unique(tidal_plot$quadrat)   
+#check the unique values of quadrat to view the inconsitancy 
+
+#I realized the values had whitespace that needed to be removed so i went back to the 'mutate(quadrat = str_remove_all()' and added a whitespace remover
+
+#I also saw that the legend ordered the quadrats from High- Low- Mid, but it needs to be High-Mid-Low for ease of our reader (& per our homework instructions)
+tidal_plot$quadrat <- factor(tidal_plot$quadrat, levels = c("Low", "Mid", "High"))
+
+```
+
+# Plot
+
+```{r Homework9B}
+pal <-pnw_palette("Sailboat",6,type="discrete")   #add a color palette for plot
+
+ggplot(tidal_plot,
+       aes(x = Cover,
+           y = Percent,
+           fill = quadrat)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Percent Cover by Quadrat at Scripps",
+       x = "Cover Type",
+       y = "Percent Cover",
+       fill = "Tide") +         #change legend title
+  scale_fill_manual(values=pal) +  #add a color palette 
+  theme_bw()+                   #change theme
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + #turn axis text 
+  scale_x_discrete(
+    labels = c("algae" = "Algae",
+               "anemone" = "Anemone",
+               "bare_rock" = "Bare Rock",
+               "gooseneck_barnacles" = "Gooseneck Barnacles",
+               "large_barnacles" = "Large Barnacles",
+               "mussels" = "Mussels",
+               "small_barnacles" = "Small Barnacles"))  # New x axis labels
+
+  
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
