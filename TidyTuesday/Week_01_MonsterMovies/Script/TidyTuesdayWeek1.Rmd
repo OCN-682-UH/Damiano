@@ -1,0 +1,178 @@
+---
+title: 'Tidy Tuesday: Monster Movies'
+author: "Savannah Damiano"
+date: "2024-10-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+
+## Homework Instructions
+
+- Have a dedicated Tidy Tuesday Folder
+- Have proper script and file structure
+- Submit a knitted RMarkdown file
+- Save your visual in the output folder
+- You must force yourself to learn at least one _NEW_ thing each week (data wrangling, new geom, new table, new way to edit your theme, new package, rmarkdown, etc.)
+- You do not have to use the entire weekly dataset 
+
+
+
+## Load Libraries
+```{r}
+library(here)
+library(tidyverse)
+library(tidytuesdayR)
+library(kableExtra)           # for enchancing the appearance of tables
+library(magick)
+library(webshot2)
+```
+
+## Load Data
+
+Upload Monster Movies data from github [Monster Movies](https://github.com/rfordatascience/tidytuesday/blob/master/data/2024/2024-10-29/readme.md) !
+```{r}
+# Option 1: tidytuesdayR package 
+## install.packages("tidytuesdayR")
+
+tuesdata <- tidytuesdayR::tt_load('2024-10-29')
+## OR
+tuesdata <- tidytuesdayR::tt_load(2024, week = 44)
+
+monster_movie_genres <- tuesdata$monster_movie_genres
+monster_movies <- tuesdata$monster_movies
+
+# Option 2: Read directly from GitHub
+
+monster_movie_genres <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-10-29/monster_movie_genres.csv')
+monster_movies <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-10-29/monster_movies.csv')
+
+
+#view data
+glimpse (monster_movie_genres)
+glimpse(monster_movies)
+
+#I will only need the monster_movies .csv
+```
+
+## Data Wrangle
+
+Goals:
+
+- To make a table
+
+- The table will show horror monster movies with an average rating of 6 or higher, the year they were made, and their genre.
+
+- Also, the table will include their movie poster.
+
+```{r}
+
+monster <- monster_movies %>%
+  filter(genres == "Horror",        #filter for only horror movies
+         average_rating >= 6)%>%    #filter movies with an average rating of 6 or higher
+  arrange(desc(average_rating)) %>% #arrange from highest to lowest rating 
+  select(primary_title, year, genres, average_rating)
+
+monster$posterlink <- c(    #add movie posters to dataset
+ "https://image.tmdb.org/t/p/original/hFay7CrI4QyL2ZP4Ea9Fg0NpEuO.jpg", 
+ "https://image.tmdb.org/t/p/original/9Z4IQsYMXnkY5UT7Tclu2qUYZNM.jpg",
+ "https://image.tmdb.org/t/p/original/vNdjSQpNFgI7LLGmERQVLIfGH6G.jpg",
+ "https://image.tmdb.org/t/p/original/pAelOfg6nEuOJYcnbPs02rZsZC4.jpg",
+ "https://icep.ug/upload/source/Water%20Monster%202.jpg",
+ "https://cdn.traileraddict.com/content/unknown/closet-monster.jpg",
+ "https://m.media-amazon.com/images/M/MV5BMTU1ODQ3NjIzM15BMl5BanBnXkFtZTcwMTY1MDAwMQ@@._V1_FMjpg_UX1000_.jpg",
+ "https://res.cloudinary.com/calartsposters/image/fetch/w_400,f_auto/https://posters.calarts.edu/wp-content/uploads/2022/11/2022_JoshLin_PaulinaGruzdev_MonsterMash.jpg",
+ "https://image.tmdb.org/t/p/original/v7WYLLFme3RPyS2i2nz9oWzrTXg.jpg",
+ "https://image.tmdb.org/t/p/original/kOcYwbjnEWy7YJJQhmVCb5gyDl2.jpg"
+)
+```
+
+## Make a Table
+
+[Customize colors in a kable table](https://r-graph-gallery.com/362-customize-colors-in-kableExtra.html#:~:text=In%20order%20to%20have%20a%20gradient%20of%20colors%2C,be%20proportional%20to%20the%20values%20in%20this%20column.)
+
+[HTML Table with kable & kableExtra](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html)
+
+[Designing Tables Video](https://youtu.be/JqUViTDoSEo)
+```{r HomeworkTable, message=FALSE, warning=FALSE}
+
+# Function to create HTML image tags from the links I put in my dataframe
+create_image_tag <- function(link) {
+  paste0('<img src="', link, '" width="75" height="100">')  # Adjust size as needed
+}
+
+# Add a new column "image" to my monster data frame 
+# I did this so I can use 'sapply'
+# 'sapply' applies the create_image_tag function to each posterlink
+
+monster$image <- sapply(monster$posterlink, create_image_tag)
+
+
+# Create HTML table
+
+movies_table <- kable(monster[, c("primary_title", "year", "genres", "average_rating", "image")],
+                                          # using kable- selecting the columns I want in the table
+                      format = "html",    # Specify the output format
+                      escape = FALSE,     # Allows the HTML to render properly
+                      col.names = c("Film", "Release Year", "Genres", "Rating", "Poster")) %>%
+                                          # Rename columns for display on table (like labs in ggplot)
+  kable_styling(full_width = FALSE) %>%   # Adjusts table width
+  row_spec(0, bold = TRUE, color = "white", background = "black") %>% # Header row styling 
+  kable_styling(bootstrap_options = "bordered") %>% #add lines between each column and row
+  column_spec(4, color= "white",
+              background = spec_color(monster$average_rating[1:10], begin = .04, end = 0.5,
+                                      option = "C"))   #creates a color gradient for the 4th column 
+
+
+#Display my table  
+movies_table
+
+#Save table to output
+
+save_kable(x= monster, file= "Homework.html")
+
+```
+
+
+
+
+# What I Learned
+
+- I new how to create/add a new column into a dataset, but I did not know how to manually create and add my own data into each row. I was able to show this new skill by adding in the links for my movie 
+
+  - monster$posterlink <- c()
+  
+
+- I learned how to do a HTML table to allow my table to be more interative.
+
+- To make a color gradient on a table column.
+
+
+# What I Practiced
+
+- I practiced reordering my data so that the movies would be ordered by highest average rating to lowest average rating. I did this by using the arrange(desc() argument. 
+
+- Creating a function.
+
+- Creating a table.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
