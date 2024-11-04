@@ -29,8 +29,8 @@ library(here)
 library(tidyverse)
 library(tidytuesdayR)
 library(kableExtra)           # for enchancing the appearance of tables
-library(magick)
-library(webshot2)
+library(magick)               # create, edit, and compose images
+library(webshot2)             # takes screenshots of webpages
 ```
 
 ## Load Data
@@ -132,10 +132,10 @@ movies_table <- kable(monster[, c("primary_title", "year", "genres", "average_ra
 #Display my table  
 movies_table
 
-#Save table to output
 
-save_kable(x= monster, file= "Homework.html")
+#save table to output
 
+save_kable(movies_table, file = here("TidyTuesday", "Week_01_MonsterMovies", "output", "my_table.html"))
 ```
 
 
