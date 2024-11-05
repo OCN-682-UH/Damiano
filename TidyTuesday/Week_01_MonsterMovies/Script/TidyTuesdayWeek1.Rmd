@@ -121,6 +121,7 @@ movies_table <- kable(monster[, c("primary_title", "year", "genres", "average_ra
                       escape = FALSE,     # Allows the HTML to render properly
                       col.names = c("Film", "Release Year", "Genres", "Rating", "Poster")) %>%
                                           # Rename columns for display on table (like labs in ggplot)
+  add_header_above(c("Average Rating of the Top 10 Horror Movies" = 5)) %>%   # Add a title
   kable_styling(full_width = FALSE) %>%   # Adjusts table width
   row_spec(0, bold = TRUE, color = "white", background = "black") %>% # Header row styling 
   kable_styling(bootstrap_options = "bordered") %>% #add lines between each column and row
