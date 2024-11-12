@@ -1,0 +1,130 @@
+---
+title: "Tidy Tuesday: Democrcy and Dictatorship"
+author: "Savannah Damiano"
+date: "2024-11-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+## Homework Instructions
+
+- Have a dedicated Tidy Tuesday Folder
+- Have proper script and file structure
+- Submit a knitted RMarkdown file
+- Save your visual in the output folder
+- You must force yourself to learn at least one _NEW_ thing each week (data wrangling, new geom, new table, new way to edit your theme, new package, rmarkdown, etc.)
+- You do not have to use the entire weekly dataset 
+
+
+## Load Libraries
+```{r}
+library(here)
+library(tidyverse)
+library(tidytuesdayR)
+library(janitor)
+library(gganimate)       # create animated graphs
+library(transformr)      # help with transformation with animations
+library(gifski)          # help create gifs
+```
+
+## Load Data
+```{r message=FALSE, warning=FALSE}
+# Option 1: tidytuesdayR package 
+## install.packages("tidytuesdayR")
+
+tuesdata <- tidytuesdayR::tt_load('2024-11-05')
+## OR
+tuesdata <- tidytuesdayR::tt_load(2024, week = 45)
+
+democracy_data <- tuesdata$democracy_data
+
+# Option 2: Read directly from GitHub
+
+democracy_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-11-05/democracy_data.csv')
+
+glimpse(democracy_data)
+
+```
+
+# Data Wrangle 
+
+
+```{r}
+clean_data <- democracy_data %>%
+ clean_names() %>%                 #janitor package to clean names
+ filter(!is.na(monarch_name)) %>%  #filters out rows in this column that have na 
+ filter(is_monarchy == TRUE) %>%
+ select(country_name, year, regime_category, is_monarchy, monarch_name) %>%     #select out the columns I want
+ drop_na(country_name, year, regime_category, is_monarchy, monarch_name)         #drop na
+ 
+#Assign a unique ID to each monarch in each country
+plot_data<-clean_data %>%
+  group_by(country_name, year)%>%
+  mutate(monarch_ID = as.factor(monarch_name))%>%
+  filter(country_name %in% c("Belgium", "Bhutan", "Jordan", "Nepal", "Tonga", "Turks and Caicos")) %>%
+  ungroup()
+
+# Summarize the data to get the count of each regime
+top_regimes <- plot_data %>%
+  group_by(regime_category) %>%       # Group by regime category
+  summarise(count = n()) %>%          # Count the occurrences of each regime
+  arrange(desc(count)) %>%            # Arrange by count in descending order
+  top_n(4, count)                     # Select the top 4 regimes
+
+# Filter the dataset to include only the top 4 regimes
+filtered_data <- plot_data %>%
+  filter(regime_category %in% top_regimes$regime_category)
+
+```
+
+## Plot
+
+```{r Homework}
+
+animated_plot <- ggplot(filtered_data, aes(x = factor(year), fill = regime_category)) +
+  geom_bar(stat = "count", position = "dodge", width = 5.0) +
+   facet_wrap(~ country_name, scales = "free_y") +  # Facet by country
+  labs(title = "Regimes Over Time for ", 
+       subtitle = "Year: {round(frame_time)}", #rounds year to whole number
+       x = "Year", 
+       y = "Count of Regimes") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_discrete(breaks = seq(min(filtered_data$year), max(filtered_data$year), by = 20)) +  # Show every 2nd year
+  transition_time(year) +           # Animate by year
+  ease_aes('linear')                # Make the animation smooth
+
+
+anim_save("animation.gif", animation = animated_plot)
+
+
+
+
+
+```
+
+# What I Learned 
+
+I learned how to animate a graph! I know she is not cute. I struggled to figure out how to best visualize this data with animation (I was super determined to teach myself animation). 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
