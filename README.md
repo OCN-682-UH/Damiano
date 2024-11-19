@@ -31,3 +31,5 @@ Weekly folders include:
 [Good Plot & Bad Plot Competition](https://github.com/OCN-682-UH/Damiano/tree/main/BadPlot_GoodPlot)
 
 [Tidy Tuesday](https://github.com/OCN-682-UH/Damiano/tree/main/TidyTuesday)
+
+[Palmer Penguin Shiny App](https://savannahdamiano.shinyapps.io/Shiny/)
