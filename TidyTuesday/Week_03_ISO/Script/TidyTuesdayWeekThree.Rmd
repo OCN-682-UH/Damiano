@@ -1,0 +1,156 @@
+---
+title: 'Tidy Tuesday: ISO Country Codes'
+author: "Savannah Damiano"
+date: "2024-11-18"
+output: 
+  ioslides_presentation:
+    widescreen: true   # Use widescreen aspect ratio
+  
+    
+#I planned to have the individual slides scroll so you could see all the text, however when I did this, the plot would not appear on the slide anymore. So I desided to ditch the idea for the sake of my sanity. 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+
+## Homework Instructions
+
+- Have a dedicated Tidy Tuesday Folder
+- Have proper script and file structure
+- Submit a knitted RMarkdown file
+- Save your visual in the output folder
+- You must force yourself to learn at least one _NEW_ thing each week (data wrangling, new geom, new table, new way to edit your theme, new package, rmarkdown, etc.)
+- You do not have to use the entire weekly dataset 
+
+
+
+## Load Libraries
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+library(here)
+library(maps)        #world dataset
+library(mapdata)
+```
+
+## Load Data
+```{r}
+# Option 1: tidytuesdayR package 
+## install.packages("tidytuesdayR")
+
+tuesdata <- tidytuesdayR::tt_load('2024-11-12')
+## OR
+tuesdata <- tidytuesdayR::tt_load(2024, week = 46)
+
+countries <- tuesdata$countries
+country_subdivisions <- tuesdata$country_subdivisions
+former_countries <- tuesdata$former_countries
+
+# Option 2: Read directly from GitHub
+
+countries <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-11-12/countries.csv')
+country_subdivisions <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-11-12/country_subdivisions.csv')
+former_countries <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-11-12/former_countries.csv')
+
+
+# look at data using environment 
+```
+
+## Data Wrangling 
+
+```{r}
+iso_data <- countries %>%
+  select(numeric,name)         
+#select out the numeric and the country names
+world_map <- map_data("world")   #get world map data
+
+#There are a lot of country name differences between the df
+#Need to find all the differences so I can fix them
+setdiff(iso_data$name, world_map$region)
+setdiff(world_map$region, iso_data$name)
+
+```
+
+```{r}
+
+#fix country names to match both data sets 
+#so all countries show up on plot 
+
+world_data <- map_data("world") %>%
+  mutate(region = case_when(
+    region == "USA" ~ "United States",
+    region == "Turkey" ~ "Türkiye",
+    region == "UK" ~ "United Kingdom",
+    region == "Syria" ~ "Syrian Arab Republic",
+    region == "Democratic Republic of the Congo" ~ "Congo, The Democratic Republic of the",
+    region == "Iran" ~ "Iran, Islamic Republic of",
+    region == "Republic of Congo" ~ "Congo",
+    region == "Czech Republic" ~ "Czechia",
+    region == "Taiwan" ~ "Taiwan, Province of China",
+    region == "North Korea" ~ "Korea, Republic of", 
+    region == "Ivory Coast" ~ "Côte d'Ivoire",
+    region == "Vietnam" ~ "Viet Nam",
+    region == "Russia" ~ "Russian Federation",
+    region == "South Korea" ~ "Korea, Democratic People's Republic of",
+    region == "Bolivia" ~ "Bolivia, Plurinational State of",
+    region == "Venezuela" ~ "Venezuela, Bolivarian Republic of",
+    region == "Moldova" ~ "Moldova, Republic of",
+    region == "Tanzania" ~ "Tanzania, United Republic of",
+    region == "Laos" ~ "Lao People's Democratic Republic",
+    TRUE ~ region
+    
+  ))
+
+```
+
+```{r}
+world_map<- world_data %>%
+  left_join(iso_data, by= c("region" = "name"))  
+#join datasets together based on the country name
+#since the datasets have different column names, I specified the names inside the join.
+```
+
+## Make a Map
+
+```{r}
+
+plot <- ggplot(world_map) +
+  geom_map(aes(map_id = region, fill = numeric), map = world_map) + 
+  #creates map by using region column to match countries
+  #fill =numeric to   color the countries by their iso code
+  
+  expand_limits(x = world_map$long, y = world_map$lat) +
+  # makes sure the map covers all counties
+  
+  scale_fill_gradientn(colors = c("lightblue","darkblue")) +
+  #defines the color gradient for the iso codes
+  
+  theme_void() +                       #theme to make the map look cleaner
+  labs(title = "ISO Numeric Codes per Country", #labels
+       fill = "ISO Numeric Code") +
+  theme(legend.position = "bottom")    #places legend below plot
+```
+
+## Map
+```{r}
+print(plot)
+```
+
+
+## What I Learned
+
+- How to make my RMarkdown into a slide show: [isoslides](https://bookdown.org/yihui/rmarkdown/ioslides-presentation.html#custom-templates-2), and how to make it [scroll](https://stackoverflow.com/questions/53064555/how-to-make-scrollable-slides-in-an-ioslides-presentation-with-rmarkdown). However, I could not get the scroll to work.
+
+- How to join two data sets without the column names matching. During my data wrangling, I used the code -  left_join(iso_data, by= c("region" = "name")) . "region" is from the world_map dataframe and "name" is from the iso_data dataframe. 
+
+- How to search for mismatched words between two drataframes.
+
+## What I Practiced
+
+- I realized I have not practiced making a map outside of the one we did in lecture. I figured this dataset is a perfect opportunity to practice this skill! 
+
+- Renaming a million words to match across two dataframes :)
