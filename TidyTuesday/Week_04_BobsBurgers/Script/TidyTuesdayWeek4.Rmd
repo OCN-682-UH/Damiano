@@ -1,0 +1,113 @@
+---
+title: "Tidy Tuesday Week 4"
+subtitle: "Bob's Burgers Episode"
+author: "Savannah Damiano"
+date: "2024/11/22"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, 
+                      message = FALSE,
+                       fig.path = "../Output/")
+options(htmltools.dir.version = FALSE)
+```
+## Homework Instructions
+
+- Have a dedicated Tidy Tuesday Folder
+- Have proper script and file structure
+- Submit a knitted RMarkdown file
+- Save your visual in the output folder
+- You must force yourself to learn at least one _NEW_ thing each week (data wrangling, new geom, new table, new way to edit your theme, new package, rmarkdown, etc.)
+- You do not have to use the entire weekly dataset 
+---
+
+## Load Libraries
+```{r}
+library(here)            #to simplify file paths
+library(tidyverse)       #data manipulation, visualization and analysis
+library(tidytuesdayR)    #for weekly datasets
+library(xaringan)        #create presentations 
+library(ggridges)        #create ridge plots
+
+```
+
+
+---
+
+## Load Data
+
+Upload data from [Bob's Burgers Episodes](https://github.com/rfordatascience/tidytuesday/blob/master/data/2024/2024-11-19/readme.md) !
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2024, week = 47)
+
+episode_metrics <- tuesdata$episode_metrics
+
+head(episode_metrics)
+
+```
+
+
+---
+## Our {little tiny} Data Wrangling
+
+```{r}
+episode_metrics<- episode_metrics %>%
+  filter(episode != 23)
+
+#No matter what I did, I could not get episode 23 data to show on my plot
+#So we cut it :)
+
+```
+
+---
+--- 
+
+
+## Plotting the Data  
+```{r, fig.show='hide'}
+plot <- ggplot(episode_metrics, aes(x = avg_length, 
+                            y = factor(episode), 
+                            fill = factor(episode))) +
+  #I set episode as a factor so I could control the level order later on
+  geom_density_ridges(scale = 2, alpha = 0.8, size = 0.7) +  
+  # Adjust the scale for density
+  theme_ridges() +  
+  # Use the theme from ggridges
+  labs(title = "Average Length by Episode",
+       x = "Average Length (minutes)",
+       y = "Episode Number") +
+  theme(legend.position = "none", # hide legend
+        axis.title.x = element_text(hjust = 0.5),  # Center x-axis label
+        axis.title.y = element_text(hjust = 0.5)) +# Center y-axis label
+  scale_y_discrete(limits = rev(levels(factor(episode_metrics$episode)))) 
+   # Reverse y-axis order
+ 
+```
+---
+## Bob's Burgers Episode Plot 
+```{r Homework, echo=FALSE, fig.height=7, fig.width=9}
+plot
+
+ggsave(here("TidyTuesday","Week_04_BobsBurgers","Output","Homework.png"))
+```
+
+---
+
+## I learned!
+
+- How to make xaringan slides!
+  - I gathered information from [Bookdown](https://bookdown.org/yihui/rmarkdown/xaringan.html), [Yihui's Xaringan Github Page](https://github.com/yihui/xaringan?tab=readme-ov-file), and by looking at Dr. Silbiger's weekly presentation's code. 
+
+- I made my first ridgeline plot (I think this is my first).So I got to learn a new geom. 
+  - I gathered information from [The R Graph Gallery](https://r-graph-gallery.com/ridgeline-plot.html). 
+--

@@ -1,0 +1,77 @@
+---
+title: 'Tidy Tuesday : Bob''s Burgers'
+author: "Savannah Damiano"
+date: "2024-11-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+
+## Homework Instructions
+
+- Have a dedicated Tidy Tuesday Folder
+- Have proper script and file structure
+- Submit a knitted RMarkdown file
+- Save your visual in the output folder
+- You must force yourself to learn at least one _NEW_ thing each week (data wrangling, new geom, new table, new way to edit your theme, new package, rmarkdown, etc.)
+- You do not have to use the entire weekly dataset 
+
+
+## Load Libraries
+```{r}
+library(here)
+library(tidyverse)
+library(tidytuesdayR)
+library(xaringan)
+library(ggridges)
+```
+
+## Load Data
+
+Upload data from [Bob's Burgers Episodes](https://github.com/rfordatascience/tidytuesday/blob/master/data/2024/2024-11-19/readme.md) !
+
+```{r}
+episode_metrics <- tuesdata$episode_metrics
+
+head(episode_metrics)
+```
+
+## Plot
+
+```{r}
+ggplot(episode_metrics, aes(x = avg_length, y = factor(episode), fill = factor(episode))) +
+  #I set episode as a factor so I could control the level order later on
+  geom_density_ridges(scale = 2) +  # Adjust the scale for density
+  theme_ridges() +  # Use the theme from ggridges
+  labs(title = "Average Length by Episode",
+       x = "Average Length",
+       y = "Episode") +
+  theme(legend.position = "none")+  # hide legend
+  scale_y_discrete(limits = rev(levels(factor(episode_metrics$episode))))   # Reverse y-axis order
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
