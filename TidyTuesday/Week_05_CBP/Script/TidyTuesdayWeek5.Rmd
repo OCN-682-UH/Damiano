@@ -1,0 +1,134 @@
+---
+title: "Tidy Tuesday Week 5"
+subtitle: "U.S. Customs and Border Protection (CBP) Encounter Data"
+author: "Savannah Damiano"
+date: "2024-11-30"
+output: 
+  html_document:
+    toc: TRUE                   
+    toc_float: TRUE
+    theme: journal
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+
+## Homework Instructions
+
+- Have a dedicated Tidy Tuesday Folder
+- Have proper script and file structure
+- Submit a knitted RMarkdown file
+- Save your visual in the output folder
+- You must force yourself to learn at least one _NEW_ thing each week (data wrangling, new geom, new table, new way to edit your theme, new package, rmarkdown, etc.)
+- You do not have to use the entire weekly dataset 
+
+
+## Load Libraries
+```{r}
+library(here)            #to simplify file paths
+library(tidyverse)       #data manipulation, visualization and analysis
+library(tidytuesdayR)    #for weekly datasets
+library(janitor)         #to help clean data
+library(PNWColors)       #to add colors
+
+```
+
+## Load Data
+
+Upload data from [U.S. Customs and Border Protection (CBP) Encounter Data](https://github.com/rfordatascience/tidytuesday/blob/main/data/2024/2024-11-26/readme.md) from the Tidy Tuesday GitHub page!
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2024, week = 48)
+
+cbp_resp <- tuesdata$cbp_resp
+cbp_state <- tuesdata$cbp_state
+
+head(cbp_resp)
+head(cbp_state)
+```
+
+## Data Wrangling 
+
+```{r}
+tidydata <- cbp_state %>%
+  clean_names() %>%         #janitor package cleaning data names
+  group_by(month_abbv, state) %>%                #select out these columns
+  summarize(total_encounters = sum(encounter_count)) %>% # Sum encounters for each state
+  arrange(desc(total_encounters)) %>%  # Sort by total encounters in descending order
+  slice_head(n = 5) # Select the top 5 states
+
+# I noticed the months on the x axis were out of order
+# 'month_abbv' needs to be an ordered factor with correct month order
+month_order <- c("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC")
+tidydata$month_abbv <- factor(tidydata$month_abbv, levels = month_order, ordered = TRUE)
+
+
+```
+
+
+## New Data Wrangling Technique I Learned 
+```{r}
+spread_data <- tidydata %>%
+  spread(key = month_abbv, value = total_encounters, fill = 0)
+
+#spread is a function that can be used to spread out or reshape the data. 
+
+#key = month_abbv - specifies the column containing the months will be used as new columns in the new df.
+
+#value = total_encounters - tells R that this column will be placed in the new columns by the month variable. Each state in the df will have it's our corresponding total encounter number. 
+
+#fill = 0 - the fill argument is used to fill in missing values. If for a particular state and month combination there is no data (i.e., the value is NA), it will be filled with 0. 
+
+#I am a very visual person, so this technique helped visualize the data for each state and month easier. 
+
+spread_data
+```
+
+
+## Plot 
+```{r, HomeworkPlot}
+ggplot(tidydata, aes(x = month_abbv, y = total_encounters, fill = state)) +
+  geom_bar(stat = "identity", position = "stack") +  # Stacked bar chart
+  theme_minimal() +     #add theme
+  labs(                 #change titles
+    title = "Total Encounters at the U.S. Border by State and Month",
+    subtitle = "Data from 2020 to 2024",
+    x = "Month",
+    y = "Total Encounters",
+    fill = "State Legend",              
+    caption = "Source: Tidy Tuesday Dataset (U.S. Customs and Border Protection Encounter Data)"
+  ) +
+  scale_fill_manual(
+    values = c("AZ" = "#5d74a5", "CA" = "#b0cbe7", "FL" = "#fff0b4", "NM" = "#eba07e", "TX" = "#a45851"),  # Custom colors
+    labels = c("Arizona", "California", "Florida", "New Mexico", "Texas")  # Custom x axis legend labels
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), # Rotate x-axis labels for readability
+   plot.caption = element_text(hjust = 0.5))  # Center the caption
+```
+
+## What I Learned!
+
+- I learned a new geom [Stacked Barplot](https://www.statology.org/stacked-barplot-in-r/)!
+
+- I learned a new argument in the tidyr package [spread()](https://www.statology.org/spread-function-in-r/)!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
