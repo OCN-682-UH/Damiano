@@ -1,0 +1,173 @@
+---
+title: "Tidy Tuesday Week 6"
+subtitle: "National Highways Traffic Flow"
+author: "Savannah Damiano"
+date: "2024-12-01"
+output: 
+  html_document:
+    toc: TRUE                   
+    toc_float: TRUE
+    theme: cosmo
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message=FALSE, 
+                      warning=FALSE,
+                      fig.path = "../Output/")
+```
+
+## Homework Instructions
+
+- Have a dedicated Tidy Tuesday Folder
+- Have proper script and file structure
+- Submit a knitted RMarkdown file
+- Save your visual in the output folder
+- You must force yourself to learn at least one _NEW_ thing each week (data wrangling, new geom, new table, new way to edit your theme, new package, rmarkdown, etc.)
+- You do not have to use the entire weekly dataset 
+
+
+## Load Libraries
+```{r}
+library(here)            #to simplify file paths
+library(tidyverse)       #data manipulation, visualization and analysis
+library(tidytuesdayR)    #for weekly datasets
+library(leaflet)         #interactive maps  
+library(htmlwidgets)     #to upload my leaflet graph to output
+library(ggmap) 
+library(maps)
+
+```
+
+## Load Data
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2024, week = 49)
+
+A64_traffic <- tuesdata$A64_traffic
+
+head(A64_traffic)
+```
+## Plot 1
+
+Attention! This is not the final map! I wanted a graph to represent where the data was collected because I had no idea :) .
+```{r, HomeworkMap1}
+# Get UK map data
+uk_map <- map_data("world")
+
+# Filter for the UK region (make sure it's correctly spelled)
+uk_map <- uk_map %>% filter(region %in% c("UK", "United Kingdom", "Ireland", "Great Britain"))
+
+# Plot the UK map with traffic data
+p1 <- ggplot() +
+  geom_polygon(data = uk_map, aes(x = long, y = lat, group = group), 
+               fill = "lightblue", color = "white") +
+  geom_point(data = A64_traffic, 
+             aes(x = Longitude, 
+                 y = Latitude)) +
+  labs(title = "Location of Traffic Data Collection",
+       x = "Longitude",
+       y = "Latitude",
+       size = "Traffic Volume",
+       color = "Traffic Volume") +
+  theme_minimal() +
+  coord_map(projection = "mercator")
+
+p1
+```
+
+## Plot 2
+
+Also, I wanted to make an interactive map that shows the traffic level across four sites in the UK. 
+```{r, HomeworkMap2}
+
+#Create thresholds for traffic
+
+low_threshold <- quantile(A64_traffic$`Total Volume`, 0.25, na.rm = TRUE)  # 25th percentile to use as low traffic 
+high_threshold <- quantile(A64_traffic$`Total Volume`, 0.75, na.rm = TRUE) # 75th percentile to use as high traffic 
+# use '' around words because there is a space that separated them in original data frame 
+
+#Create a leaflet map 
+
+p2 <- leaflet(A64_traffic) %>%
+
+# Default OpenStreetMap tiles
+  addTiles() %>%  
+  
+# Satellite imagery from Esri
+  addProviderTiles("Esri.WorldImagery") %>% 
+  
+# Set the initial view of the map. Centered on Yorkshire UK
+  setView(lng = -0.6946696, lat = 54.1581, zoom = 10) %>%  
+
+# Add circle markers to represent traffic data at specific locations  
+  addCircleMarkers(
+    lng = ~Longitude,     #long coords for circle placement
+    lat = ~Latitude,      #lat coords for circle placement
+    radius = ~sqrt(`Total Volume` / 10),  # scales circle size by traffic volume
+    color = ~case_when(   #change colors depending on traffic volume
+      `Total Volume` <= low_threshold ~ "green",   #low traffic- green
+      `Total Volume` > low_threshold & `Total Volume` <= high_threshold ~ "orange", #moderate traffic - orange
+      `Total Volume` > high_threshold ~ "red"), #high traffic - red
+    popup = ~paste("Site Name:", `Site Name`, "<br>",         # apparently you have to add "<br>" as a line break for popup
+                   "Total Volume:", `Total Volume`, "<br>",
+                   "Avg Speed (mph):", `Avg mph`))%>%         # Add a popup for each marker with traffic details
+  
+ addLegend(
+    position = "bottomright",  # Position of the legend on the map
+    colors = c("green", "orange", "red"),  # Color map for traffic levels
+    labels = c(
+      paste("Low Traffic"),          #labels
+      paste("Moderate Traffic"),
+      paste("High Traffic")
+    ),
+    title = "Traffic Volume") %>%    #legend title
+
+addControl(
+    html = "<h3>Traffic Level</h3>", #add the <h3> and </h3> to indicate the beginning and end of HTML 
+    position = "topleft"
+  ) %>%                              #add a title in the map
+
+  addMiniMap(width = 150, height = 150)    #add a mini map to show were we are in the UK
+
+p2 
+
+#save to output folder
+
+saveWidget(p2, file = "HomeworkMap2.html")
+```
+
+
+## Hey Savannah, what did you learn?
+
+Aw thanks for asking <3
+
+- I learned about the [quantile()](https://www.statology.org/quantile-function-in-r/) function. This function can help to divide rank within a data set. I used this function to be able to create different traffic volume thresholds for my leaflet map. 
+
+- I learned a lot in in [leaflet](https://rstudio.github.io/leaflet/articles/legends.html).
+  - How to add a legend.
+  - How to create circle markers that have different color levels for different values. 
+  - How to create circle markers for specific locations on a map. 
+  - How to change the type of map using [addProviderTiles()](https://rstudio.github.io/leaflet/reference/addProviderTiles.html).
+  - How to add a title to a leaflet align. 
+  - How to make a [minimap](https://r-charts.com/spatial/interactive-maps-leaflet/).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
