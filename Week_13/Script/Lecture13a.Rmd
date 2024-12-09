@@ -1,0 +1,252 @@
+---
+title: 'Lecture 13A: Interactive Coding'
+author: "Savannah Damiano"
+date: "2024-12-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Load Libraries
+```{r}
+library(tidyverse)
+library(here)
+```
+
+## Load Data
+```{r}
+
+```
+
+## Learning Loops
+##### Simple for Loop
+
+```{r}
+#Slide 8
+#Let's ask R to print a statement telling us what year it is along a sequence of years.
+
+#Step 1: start with simple code for one year
+print(paste("The year is", 2000))
+
+#Step 2: Put it in for a loop
+
+years<-c(2015:2021)
+
+for (i in years){ 
+  # set up the for loop where i is the index
+  print(paste("The year is", i)) 
+  # loop over i
+}
+
+
+#Slide 9
+#What we just did printed something over and over, but it did not save it anywhere. 
+#Let's say you want to save a new vector with all the years. 
+#To do this we need to pre-allocate space and tell R where it is going to be saved.
+
+#Pre-allocate space for the for loop
+# Empty matrix that is as long as the years vector
+ year_data<-tibble(year =  rep(NA, length(years)),  
+                   # column name for year
+              year_name = rep(NA, length(years))) 
+                  # column name for the year name
+year_data
+
+
+#Slide 10
+#One line at a time. 
+#Let's first add in the column that is going to have all the names in it. 
+#Notice that I added an index i in the column name. 
+#I also am having the index go from 1:length(years), which is 1:7. I use length() because it allows me to change the number of years in the vector without having to change the for loop.
+
+for (i in 1:length(years)){ 
+  # set up the for loop where i is the index
+  year_data$year_name[i]<-paste("The year is", years[i]) 
+  #loop over i
+}
+year_data
+
+#Slide 11
+#Now fill in the column too 
+for (i in 1:length(years)){ 
+  # set up the for loop where i is the index
+  year_data$year_name[i]<-paste("The year is", years[i]) 
+  #loop over i
+  year_data$year[i] <- years[i] 
+  #loop over year
+}
+
+year_data
+```
+
+## Learning Loops 
+####Using loops to read in multiple .csv files
+
+```{r}
+#Slide 12
+#Let's say you have multiple data files where you want to perform the same action to each. You can use a for loop to do this.
+
+#Read in one of the files so that you can see what it looks like
+
+testdata<-read_csv(here("Week_13", "Data", "cond_data","011521_CT316_1pcal.csv"))
+
+glimpse(testdata)
+
+# Now list files in a directory 
+
+# point to the location on the computer of the folder
+CondPath<-here("Week_13", "Data", "cond_data")
+
+# list all the files in that path with a specific pattern
+# In this case we are looking for everything that has a .csv in the filename
+
+# you can use regex to be more specific if you are looking for certain patterns in filenames
+files <- dir(path = CondPath,pattern = ".csv")
+
+files
+
+#Slide 14
+#Remember, we need to pre-allocate space for the loop!
+# make an empty dataframe that has one row for each file and 3 columns
+
+#Let's calculate the mean temperature and salinity from each file and save it
+
+cond_data<-tibble(filename =  rep(NA, length(files)),  
+                  # column name for year
+                   mean_temp = rep(NA, length(files)), 
+                  # column name for the mean temperature
+                   mean_sal = rep(NA, length(files)), 
+                  # column name for the mean salinity
+                   ) # column name for the year name
+
+cond_data
+
+
+#Slide 15
+#For loop
+#write basic code to calculate a mean and build out
+
+raw_data<-read_csv(paste0(CondPath,"/",files[1]))
+# test by reading in the first file and see if it works
+
+head(raw_data)
+
+mean_temp<-mean(raw_data$Temperature, na.rm = TRUE) 
+  # calculate a mean
+mean_temp
+
+
+#Slide 16
+#Turn it into a loop
+#Then add in the loop over the raw data
+
+for (i in 1:length (files)) { # loop over 1:3 the number of files
+  
+raw_data<-read_csv(paste0(CondPath,"/",files[i]))
+glimpse(raw_data)
+
+}
+
+
+# Slide 17
+# Add in the columns 
+# First, add in the filename for each row
+
+for (i in 1:length (files)) { # loop over 1:3 the number of files
+  
+raw_data<-read_csv(paste0(CondPath,"/",files[i]))
+#glimpse(raw_data)
+
+cond_data$filename[i] <- files[i]
+
+}
+
+cond_data
+
+
+#Slide 18 
+#Add in means
+
+for (i in 1:length(files)){ # loop over 1:3 the number of files 
+  
+raw_data<-read_csv(paste0(CondPath,"/",files[i]))
+#glimpse(raw_data)
+
+cond_data$filename[i]<-files[i]
+cond_data$mean_temp[i]<-mean(raw_data$Temperature, na.rm =TRUE)
+cond_data$mean_sal[i]<-mean(raw_data$Salinity, na.rm =TRUE)
+
+} 
+
+cond_data
+```
+
+
+
+## Learning Map Functions
+
+Same thing as loop but in tidyverse style language
+```{r}
+
+# There are 3 ways to do the same thing in a map() function 
+
+# 1: Use a canned function that already exists 
+
+#calculate the mean from a set of random numbers and do it 10 times
+
+# first, create a vector from 1:10
+1:10 # a vector from 1 to 10 (we are going to do this 10 times)
+
+# second, for each time 1:10 make a vector of 15 random numbers based on a normal distribution
+1:10 %>% 
+  # a vector from 1 to 10 (we are going to do this 10 times) %>%   # the vector to iterate over
+  map(rnorm, n = 15)
+  # calculate 15 random numbers based on a normal distribution in a list
+
+#third, calculate the mean from each list
+
+1:10 %>%
+  map(rnorm, n = 15) %>%
+  map_dbl(mean)
+  
+
+
+
+# point to the location on the computer of the folder
+CondPath<-here("Week_13", "Data", "cond_data")
+
+files <- dir(path = CondPath,pattern = ".csv")
+
+files
+
+
+
+files <- dir(path = CondPath,pattern = ".csv", full.names = TRUE)
+#save the entire path name
+files
+
+
+
+
+```
+
+## R Package of the Day
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
