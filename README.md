@@ -28,6 +28,8 @@ Weekly folders include:
 
 [Week 9](https://github.com/OCN-682-UH/Damiano/tree/main/Week_09)
 
+[Week 13](https://github.com/OCN-682-UH/Damiano/tree/main/Week_13)
+
 [Good Plot & Bad Plot Competition](https://github.com/OCN-682-UH/Damiano/tree/main/BadPlot_GoodPlot)
 
 [Tidy Tuesday](https://github.com/OCN-682-UH/Damiano/tree/main/TidyTuesday)
